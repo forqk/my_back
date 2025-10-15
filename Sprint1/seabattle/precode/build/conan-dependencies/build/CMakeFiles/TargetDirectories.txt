@@ -1,0 +1,2 @@
+/home/al/my_back/Sprint1/seabattle/precode/build/conan-dependencies/build/CMakeFiles/edit_cache.dir
+/home/al/my_back/Sprint1/seabattle/precode/build/conan-dependencies/build/CMakeFiles/rebuild_cache.dir

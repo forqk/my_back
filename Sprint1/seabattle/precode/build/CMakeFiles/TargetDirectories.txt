@@ -1,0 +1,3 @@
+/home/al/my_back/Sprint1/seabattle/precode/build/CMakeFiles/seabattle.dir
+/home/al/my_back/Sprint1/seabattle/precode/build/CMakeFiles/edit_cache.dir
+/home/al/my_back/Sprint1/seabattle/precode/build/CMakeFiles/rebuild_cache.dir
