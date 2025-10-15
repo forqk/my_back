@@ -1,2 +1,0 @@
-/home/al/hello/my_serv/build/conan-dependencies/build/CMakeFiles/edit_cache.dir
-/home/al/hello/my_serv/build/conan-dependencies/build/CMakeFiles/rebuild_cache.dir

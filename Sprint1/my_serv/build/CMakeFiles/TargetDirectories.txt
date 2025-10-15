@@ -1,3 +1,0 @@
-/home/al/hello/my_serv/build/CMakeFiles/radio.dir
-/home/al/hello/my_serv/build/CMakeFiles/edit_cache.dir
-/home/al/hello/my_serv/build/CMakeFiles/rebuild_cache.dir
