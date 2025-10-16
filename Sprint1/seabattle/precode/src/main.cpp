@@ -63,12 +63,18 @@ static bool WriteExact(tcp::socket& socket, std::string_view data) {
 
 class SeabattleAgent {
 public:
-    SeabattleAgent(const SeabattleField& field)
-        : my_field_(field) {
-    }
+    SeabattleAgent(const SeabattleField& field) : my_field_(field) {}
 
     void StartGame(tcp::socket& socket, bool my_initiative) {
-        // TODO: реализуйте самостоятельно
+        PrintFields();
+        if(!my_initiative){
+            std::cout << "Waiting for turn..." << std::endl;
+        } else {
+            std::string data;
+            std::cout << "Your turn: "; std::cin >> data;
+
+        }
+
     }
 
 private:
@@ -84,7 +90,8 @@ private:
     }
 
     static std::string MoveToString(std::pair<int, int> move) {
-        char buff[] = {static_cast<char>(move.first) + 'A', static_cast<char>(move.second) + '1'};
+        //char buff[] = {static_cast<char>(move.first) + 'A', static_cast<char>(move.second) + '1'};
+        char buff[] = {static_cast<char>(static_cast<char>(move.first) + 'A'), static_cast<char>(static_cast<char>(move.second) + '1')}; // потом поправишь, пока такую заглушку.
         return {buff, 2};
     }
 
@@ -96,7 +103,21 @@ private:
         return my_field_.IsLoser() || other_field_.IsLoser();
     }
 
-    // TODO: добавьте методы по вашему желанию
+    void SendResult(){
+
+    }
+
+    void SendMove(){
+
+    }
+
+    void ReadResult(){
+
+    }
+
+    void RedMove(){
+
+    }
 
 private:
     SeabattleField my_field_;
@@ -106,17 +127,39 @@ private:
 void StartServer(const SeabattleField& field, unsigned short port) {
     SeabattleAgent agent(field);
 
-    // TODO: реализуйте самостоятельно
+    net::io_context io_context;
 
-   // agent.StartGame(socket, false);
+    tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), port));
+    std::cout << "Waiting for connection..."sv << std::endl;
+
+    boost::system::error_code ec;
+    tcp::socket socket{io_context};
+    acceptor.accept(socket, ec);
+
+    if (ec) {
+        std::cout << "Can't accept connection"sv << std::endl;
+        return;
+    }
+
+    agent.StartGame(socket, false);
 };
 
 void StartClient(const SeabattleField& field, const std::string& ip_str, unsigned short port) {
     SeabattleAgent agent(field);
 
-    // TODO: реализуйте самостоятельно
+    boost::system::error_code ec;
+    auto endpoint = tcp::endpoint(net::ip::make_address(ip_str, ec), port);
 
-    //agent.StartGame(socket, true);
+    if (ec) { std::cout << "Wrong IP format"sv << std::endl; return ; }
+
+    net::io_context io_context;
+    tcp::socket socket{io_context};
+
+    socket.connect(endpoint, ec);
+
+    if (ec) { std::cout << "Can't connect to server"sv << std::endl; }
+
+    agent.StartGame(socket, true);
 };
 
 int main(int argc, const char** argv) {
@@ -127,10 +170,11 @@ int main(int argc, const char** argv) {
 
     std::mt19937 engine(std::stoi(argv[1]));
     SeabattleField fieldL = SeabattleField::GetRandomField(engine);
+    SeabattleField fieldR = SeabattleField::GetRandomField(engine);
 
     if (argc == 3) {
         StartServer(fieldL, std::stoi(argv[2]));
     } else if (argc == 4) {
-        StartClient(fieldL, argv[2], std::stoi(argv[3]));
+        StartClient(fieldR, argv[2], std::stoi(argv[3]));
     }
 }
