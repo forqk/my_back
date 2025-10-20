@@ -45,7 +45,7 @@ static std::optional<std::string> ReadExact(tcp::socket& socket) {
     boost::system::error_code ec;
 
     net::read(socket, net::buffer(buf), net::transfer_exactly(sz), ec);
-
+    //std::cout << "READ MOTHER FUCKER " << std::endl;
     if (ec) {
         return std::nullopt;
     }
@@ -65,14 +65,72 @@ class SeabattleAgent {
 public:
     SeabattleAgent(const SeabattleField& field) : my_field_(field) {}
 
-    void StartGame(tcp::socket& socket, bool my_initiative) {
-        PrintFields();
-        if(!my_initiative){
-            std::cout << "Waiting for turn..." << std::endl;
-        } else {
-            std::string data;
-            std::cout << "Your turn: "; std::cin >> data;
+    SeabattleField::ShotResult CheckShoot(SeabattleField::ShotResult shot, std::pair<int, int>coord, SeabattleField& field){
+        SeabattleField::ShotResult result_shot;
+        auto [x, y] = coord;
 
+        switch (shot) {
+        case SeabattleField::ShotResult::MISS:
+            field.MarkMiss(x, y);
+            result_shot = SeabattleField::ShotResult::MISS;
+            break;
+        case SeabattleField::ShotResult::HIT:
+            field.MarkHit(x, y);
+            result_shot = SeabattleField::ShotResult::HIT;
+            break;
+        case SeabattleField::ShotResult::KILL:
+            field.MarkKill(x, y);
+            result_shot = SeabattleField::ShotResult::KILL;
+            break;
+        default:
+            break;
+        }
+
+        return result_shot;
+    }
+    void StartGame(tcp::socket& socket, bool my_initiative) {
+        while(!IsGameEnded()){
+
+            SeabattleField::ShotResult result_shot;
+            PrintFields();
+
+            if(!my_initiative){
+                std::cout << "Waiting for turn..." << std::endl;
+                auto coord = ReadExact<2>(socket);
+                std::cout << "Shot to " << coord.value() << std::endl;
+
+                auto [y, x] = ParseMove(coord.value()).value();
+
+                result_shot = CheckShoot(my_field_.Shoot(x, y), {x, y}, my_field_);
+
+                WriteExact(socket, std::string(1, static_cast<char>(result_shot)));
+
+            } else {
+                std::string data;
+
+                std::cout << "Your turn: ";
+                std::cin >> data;
+
+                auto [y, x] = ParseMove(data).value();
+
+                WriteExact(socket, data);
+
+                auto answer = ReadExact<1>(socket);
+
+                result_shot = CheckShoot(static_cast<SeabattleField::ShotResult>(static_cast<int>(answer.value()[0])), {x, y}, other_field_);
+
+                if(result_shot == SeabattleField::ShotResult::KILL){
+                    std::cout << "KILL!" << std::endl;
+                }
+
+                if(result_shot == SeabattleField::ShotResult::HIT){
+                    std::cout << "HIT!" << std::endl;
+                }
+            }
+
+            if(result_shot == SeabattleField::ShotResult::MISS){
+                my_initiative = !my_initiative;
+            }
         }
 
     }
@@ -90,7 +148,6 @@ private:
     }
 
     static std::string MoveToString(std::pair<int, int> move) {
-        //char buff[] = {static_cast<char>(move.first) + 'A', static_cast<char>(move.second) + '1'};
         char buff[] = {static_cast<char>(static_cast<char>(move.first) + 'A'), static_cast<char>(static_cast<char>(move.second) + '1')}; // потом поправишь, пока такую заглушку.
         return {buff, 2};
     }
